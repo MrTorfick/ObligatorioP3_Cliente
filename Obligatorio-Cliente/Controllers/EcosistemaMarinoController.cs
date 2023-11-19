@@ -6,13 +6,17 @@ using System;
 using Obligatorio_Cliente.Models;
 using Microsoft.Extensions.Hosting;
 using System.Text;
+using System.Xml.Linq;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Diagnostics.Metrics;
 
 namespace Obligatorio_Cliente.Controllers
 {
     public class EcosistemaMarinoController : Controller
     {
         private HttpClient cliente = new HttpClient();
-        private string url = "http://localhost:5155/api/EcosistemaMarino";
+        private string url = "http://localhost:5155/api";
+        private string urlPaises = "https://restcountries.com/v3.1/all";
 
         private IWebHostEnvironment _environment;
 
@@ -26,8 +30,7 @@ namespace Obligatorio_Cliente.Controllers
             try
             {
                 //cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
-
-                Uri uri = new Uri(url);
+                Uri uri = new Uri(url + "/" + "EcosistemaMarino");
                 HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
                 Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
                 respuesta.Wait();
@@ -61,10 +64,44 @@ namespace Obligatorio_Cliente.Controllers
         // GET: EcosistemaMarinoController/Create
         public ActionResult Create()
         {
-            ViewBag.EstadosConservacion = this.getEstadosConservacionUC.ObtenerEstadosConservacion();
-            ViewBag.Amenazas = this.getAmenazasUC.GetAmenazas();
-            ViewBag.Paises = this.obtenerPaisesUC.ObtenerPaises();
-            ViewBag.Mensaje = mensaje;
+            HttpClient clientePaises = new HttpClient();
+            Uri uriPaises = new Uri(urlPaises);
+            HttpRequestMessage solicitudPaises = new HttpRequestMessage(HttpMethod.Get, uriPaises);
+            Task<HttpResponseMessage> respuestaPaises = clientePaises.SendAsync(solicitudPaises);
+            respuestaPaises.Wait();
+
+            if (respuestaPaises.Result.IsSuccessStatusCode)
+            {
+                Task<string> responsePaises = respuestaPaises.Result.Content.ReadAsStringAsync();
+                responsePaises.Wait();
+                IEnumerable<PaisModel> paises = JsonConvert.DeserializeObject<IEnumerable<PaisModel>>(responsePaises.Result);
+                ViewBag.Paises = paises;
+            }
+            else
+            {
+                return RedirectToAction("Error");
+            }
+            Uri uriEstadosConservacion = new Uri(url + "/" + "EstadoConservacion");
+            HttpRequestMessage solicitudEstadosConservacion = new HttpRequestMessage(HttpMethod.Get, uriEstadosConservacion);
+            Task<HttpResponseMessage> respuestaEstadosConservacion = cliente.SendAsync(solicitudEstadosConservacion);
+            respuestaEstadosConservacion.Wait();
+            if (respuestaEstadosConservacion.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuestaEstadosConservacion.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                IEnumerable<EstadoConservacionModel> estadoConservacionModels = JsonConvert.DeserializeObject<IEnumerable<EstadoConservacionModel>>(response.Result);
+                ViewBag.EstadosConservacion = estadoConservacionModels;
+            }
+            else
+            {
+                return RedirectToAction("Error");
+
+            }
+
+
+            //ViewBag.Amenazas = this.getAmenazasUC.GetAmenazas();
+
+            //ViewBag.Mensaje = mensaje;
             return View();
         }
 
