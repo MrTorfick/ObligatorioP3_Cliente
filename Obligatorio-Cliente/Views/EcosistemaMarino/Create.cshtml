@@ -1,0 +1,125 @@
+﻿@model EcosistemaMarinoModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+@if (!String.IsNullOrEmpty(ViewBag.Mensaje))
+{
+    <div class="alert alert-danger">
+        @ViewBag.Mensaje
+    </div>
+}
+
+
+<h1>Create</h1>
+
+<h4>EcosistemaMarino</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        @if (ViewBag.EstadosConservacion == null)
+        {
+            <div class="alert alert-warning" role="alert">
+                No se han encontrado estados de conservacion en la base de datos. <br />
+                Es necesario tener al menos un estado de conservacion, para hacer el registro de un ecosistema marino.<br />
+            </div>
+        }
+        else
+        {
+            <form asp-action="Create" enctype="multipart/form-data" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-group">
+                    <label asp-for="Nombre" class="control-label"></label>
+                    <input asp-for="Nombre" class="form-control" value="EcosistemaMarino1" />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+                <h6>Coordenadas</h6>
+                <div class="form-group">
+                    <label asp-for="Coordenadas.Longitud" class="control-label"></label>
+                    <input asp-for="Coordenadas.Longitud" class="form-control" type="number" name="Longitud" value="-34.8475847" />
+                    <span asp-validation-for="Coordenadas.Longitud" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Coordenadas.Latitud" class="control-label"></label>
+                    <input asp-for="Coordenadas.Latitud" class="form-control" type="number" name="Latitud" value="28.8576457" />
+                    <span asp-validation-for="Coordenadas.Latitud" class="text-danger"></span>
+                </div>
+
+
+                <div class="form-group">
+                    <label asp-for="Area" class="control-label"></label>
+                    <input asp-for="Area" class="form-control" value="88" type="number" />
+                    <span asp-validation-for="Area" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DescripcionCaracteristicas" class="control-label"></label>
+                    <input asp-for="DescripcionCaracteristicas" class="form-control" value="Caracteristicas del ecosistema marino llamado EcosistemaMarino01" />
+                    <span asp-validation-for="DescripcionCaracteristicas" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label for="imagen" class="control-label"></label>
+                    <input type="file" name="imagen" class="form-control" multiple accept=".png, .jpg, .jpeg" />
+                    <span asp-validation="imagen" class="text-danger"></span>
+                </div>
+
+
+
+                <div class="form-group">
+                    <label>Seleccione el estado de conservacion del Ecosistema: </label> <br />
+                    <select id="SelectedOptionEstado" name="SelectedOptionEstado">
+                        @foreach (var option in ViewBag.EstadosConservacion)
+                        {
+                            <option value="@option.Id">@option.Nombre</option>
+                        }
+                    </select>
+                </div>
+
+
+
+                <div class="form-group">
+                    <label>Seleccione las amenazas:</label> <br />
+                    <label>Descripcion - Peligrosidad</label> <br />
+                    <select multiple="multiple" id="SelectedOptionsAmenazas" name="SelectedOptionsAmenazas">
+                        @foreach (var option in ViewBag.Amenazas)
+                        {
+                            <option value="@option.Id">@option.Descripcion - @option.Peligrosidad</option>
+                        }
+                    </select>
+                </div>
+
+
+
+
+                <div class="form-group">
+                    <label>Seleccione un Pais </label> <br />
+                    <select id="PaisSeleccionado" name="PaisSeleccionado">
+                        @foreach (var option in ViewBag.Paises)
+                        {
+                            <option value="@option.PaisId">@option.nombre</option>
+                        }
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" />
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}
+

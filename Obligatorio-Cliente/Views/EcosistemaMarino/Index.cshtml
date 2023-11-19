@@ -1,0 +1,60 @@
+﻿@model IEnumerable<Obligatorio_Cliente.Models.EcosistemaMarinoModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Nombre)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Area)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DescripcionCaracteristicas)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PaisId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EstadoConservacionId)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Nombre)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Area)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DescripcionCaracteristicas)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PaisId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EstadoConservacionId)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+                    @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+                    @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
