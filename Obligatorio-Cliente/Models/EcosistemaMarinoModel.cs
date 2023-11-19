@@ -13,8 +13,8 @@
         public List<AmenazasAsociadasModel> Amenazas { get; set; }
         public int? PaisId { get; set; }
         public int? EstadoConservacionId { get; set; }
-        public string grados_Latitud { get; set; }
-        public string grados_Longitud { get; set; }
+        //public string grados_Latitud { get; set; }
+        //public string grados_Longitud { get; set; }
 
 
 

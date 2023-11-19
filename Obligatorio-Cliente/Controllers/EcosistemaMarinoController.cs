@@ -97,9 +97,22 @@ namespace Obligatorio_Cliente.Controllers
                 return RedirectToAction("Error");
 
             }
+            Uri uriAmenazas = new Uri(url + "/" + "Amenaza");
+            HttpRequestMessage solicitudAmenazas = new HttpRequestMessage(HttpMethod.Get, uriAmenazas);
+            Task<HttpResponseMessage> respuestaAmenazas = cliente.SendAsync(solicitudAmenazas);
+            respuestaAmenazas.Wait();
+            if (respuestaAmenazas.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuestaAmenazas.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                IEnumerable<AmenazaModel> amenazaModels = JsonConvert.DeserializeObject<IEnumerable<AmenazaModel>>(response.Result);
+                ViewBag.Amenazas = amenazaModels;
+            }
+            else
+            {
+                return RedirectToAction("Error");
 
-
-            //ViewBag.Amenazas = this.getAmenazasUC.GetAmenazas();
+            }
 
             //ViewBag.Mensaje = mensaje;
             return View();
@@ -113,8 +126,8 @@ namespace Obligatorio_Cliente.Controllers
             try
             {
 
-                if (ecosistemasMarinos == null || imagen.Count == 0 || SelectedOptionEstado == 0 || PaisSeleccionado == 0 || Latitud == null || Longitud == null)
-                    return View();
+                //if (ecosistemasMarinos == null || imagen.Count == 0 || SelectedOptionEstado == 0 || PaisSeleccionado == 0 || Latitud == null || Longitud == null)
+                    //return View();
 
                 if (GuardarImagen(imagen, ecosistemasMarinos))
                 {
@@ -122,7 +135,13 @@ namespace Obligatorio_Cliente.Controllers
                     ecosistemasMarinos.Amenazas = new List<AmenazasAsociadasModel>();
                     ecosistemasMarinos.EspeciesHabitan = new List<EspecieMarinaModel>();
                     ecosistemasMarinos.Coordenadas = new CoordenadasModel();
-                    Uri uri = new Uri(url);
+                    ecosistemasMarinos.Coordenadas.Latitud = Latitud;
+                    ecosistemasMarinos.Coordenadas.Longitud = Longitud;
+                    //ecosistemasMarinos.grados_Latitud = ecosistemasMarinos.GradosMinutosSegundos(Latitud, "Latitud");
+                    //ecosistemasMarinos.grados_Latitud = "null";
+                    //ecosistemasMarinos.grados_Longitud = "null";
+
+                    Uri uri = new Uri(url + "/" + "EcosistemaMarino");
                     HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Post, uri);
 
                     string json = JsonConvert.SerializeObject(ecosistemasMarinos);

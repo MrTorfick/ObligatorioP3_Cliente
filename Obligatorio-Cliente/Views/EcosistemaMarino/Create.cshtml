@@ -98,7 +98,7 @@
                     <select id="PaisSeleccionado" name="PaisSeleccionado">
                         @foreach (var option in ViewBag.Paises)
                         {
-                            <option value="@option.PaisId">@option.nombre</option>
+                            <option value="@option.cca3">@option.name.common</option>
                         }
                     </select>
 
