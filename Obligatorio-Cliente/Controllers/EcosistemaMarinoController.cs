@@ -185,7 +185,7 @@ namespace Obligatorio_Cliente.Controllers
             //ViewBag.Mensaje = mensaje;
             return View();
         }
-        
+
         // POST: EcosistemaMarinoController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -195,7 +195,7 @@ namespace Obligatorio_Cliente.Controllers
             {
 
                 if (ecosistemasMarinos == null || imagen.Count == 0 || SelectedOptionEstado == 0 || PaisSeleccionado == null || Latitud == null || Longitud == null)
-                return View();
+                    return View();
 
                 string LongitudTipo = "Longitud";
                 string LatitudTipo = "Latitud";
@@ -204,6 +204,18 @@ namespace Obligatorio_Cliente.Controllers
                 string grados_Longitud = ecosistemasMarinos.GradosMinutosSegundos(Longitud, LongitudTipo);
 
                 ecosistemasMarinos.Coordenadas = new CoordenadasModel(grados_Longitud, grados_Latitud);
+                ecosistemasMarinos.EstadoConservacionId = this.ObtenerEstadoConservacionPorId(SelectedOptionEstado).Id;
+                foreach (var item in SelectedOptionsAmenazas)
+                {
+                    AmenazaModel amenaza = this.ObtenerAmenazaPorId(item);
+
+                    if (amenaza != null)
+                    {
+                        AmenazasAsociadasModel amenazasAsociadas = new AmenazasAsociadasModel();
+                        amenazasAsociadas.AmenazaId = amenaza.Id;
+                        ecosistemasMarinos.Amenazas.Add(amenazasAsociadas);
+                    }
+                }
 
 
                 if (GuardarImagen(imagen, ecosistemasMarinos))
@@ -242,14 +254,16 @@ namespace Obligatorio_Cliente.Controllers
                 {
                     return RedirectToAction(nameof(Create), new { mensaje = "No se pudo guardar la imagen" });
                 }
-        
 
 
-    }
+
+            }
             catch (Exception ex)
             {
-                return RedirectToAction(nameof(Create), new { mensaje = ex.Message
-});
+                return RedirectToAction(nameof(Create), new
+                {
+                    mensaje = ex.Message
+                });
             }
         }
 
@@ -308,102 +322,138 @@ namespace Obligatorio_Cliente.Controllers
          
          
          */
+        private AmenazaModel ObtenerAmenazaPorId(int id)
+        {
+
+            Uri uri = new Uri(url + "/" + "Amenaza" + id);
+            HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+            respuesta.Wait();
+
+            if (respuesta.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                AmenazaModel amenaza = JsonConvert.DeserializeObject<AmenazaModel>(response.Result);
+                return amenaza;
+            }
+            return null;
+        }
+
+
+
+        private EstadoConservacionModel ObtenerEstadoConservacionPorId(int id)
+        {
+            Uri uri = new Uri(url + "/" + "EstadoConservacion" + id);
+            HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+            respuesta.Wait();
+
+            if (respuesta.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                EstadoConservacionModel estadoConservacion = JsonConvert.DeserializeObject<EstadoConservacionModel>(response.Result);
+                return estadoConservacion;
+            }
+            return null;
+        }
 
 
         private bool GuardarImagen(List<IFormFile> imagen, EcosistemaMarinoModel em)
-{
-    if (imagen == null || em == null) return false;
-    // SUBIR LA IMAGEN
-    //ruta física de wwwroot
-    string rutaFisicaWwwRoot = _environment.WebRootPath;
-    int num = 0;
-    foreach (var item in imagen)
-    {
-        string tipoImagen;
-        if (item.ContentType.Contains("png"))
         {
-            tipoImagen = ".png";
-        }
-        else if (item.ContentType.Contains("jpeg"))
-        {
-            tipoImagen = ".jpeg";
-        }
-        else
-        {
-            tipoImagen = ".jpg";
-        }
-
-        string numString = num.ToString("D3");
-        string nombreImagen = item.FileName;
-        nombreImagen = em.Id + "_" + numString + tipoImagen;
-        num++;
-        //ruta donde se guardan las fotos de las personas
-        string rutaFisicaFoto = Path.Combine
-        (rutaFisicaWwwRoot, "images", "ecosistema", nombreImagen);
-        //FileStream permite manejar archivos
-        try
-        {
-            //el método using libera los recursos del objeto FileStream al finalizar
-            using (FileStream f = new FileStream(rutaFisicaFoto, FileMode.Create))
+            if (imagen == null || em == null) return false;
+            // SUBIR LA IMAGEN
+            //ruta física de wwwroot
+            string rutaFisicaWwwRoot = _environment.WebRootPath;
+            int num = 0;
+            foreach (var item in imagen)
             {
-                //Para archivos grandes o varios archivos usar la versión
-                //asincrónica de CopyTo. Sería: await imagen.CopyToAsync (f);
-                item.CopyTo(f);
+                string tipoImagen;
+                if (item.ContentType.Contains("png"))
+                {
+                    tipoImagen = ".png";
+                }
+                else if (item.ContentType.Contains("jpeg"))
+                {
+                    tipoImagen = ".jpeg";
+                }
+                else
+                {
+                    tipoImagen = ".jpg";
+                }
+
+                string numString = num.ToString("D3");
+                string nombreImagen = item.FileName;
+                nombreImagen = em.Id + "_" + numString + tipoImagen;
+                num++;
+                //ruta donde se guardan las fotos de las personas
+                string rutaFisicaFoto = Path.Combine
+                (rutaFisicaWwwRoot, "images", "ecosistema", nombreImagen);
+                //FileStream permite manejar archivos
+                try
+                {
+                    //el método using libera los recursos del objeto FileStream al finalizar
+                    using (FileStream f = new FileStream(rutaFisicaFoto, FileMode.Create))
+                    {
+                        //Para archivos grandes o varios archivos usar la versión
+                        //asincrónica de CopyTo. Sería: await imagen.CopyToAsync (f);
+                        item.CopyTo(f);
+                    }
+                    //GUARDAR EL NOMBRE DE LA IMAGEN SUBIDA EN EL OBJETO
+                    ImagenModel imagenEnviar = new ImagenModel(nombreImagen);
+                    em.Imagen.Add(imagenEnviar);
+
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
             }
-            //GUARDAR EL NOMBRE DE LA IMAGEN SUBIDA EN EL OBJETO
-            ImagenModel imagenEnviar = new ImagenModel(nombreImagen);
-            em.Imagen.Add(imagenEnviar);
+            return true;
 
         }
-        catch (Exception ex)
+
+        // GET: EcosistemaMarinoController/Edit/5
+        public ActionResult Edit(int id)
         {
-            return false;
+            return View();
         }
-    }
-    return true;
 
-}
+        // POST: EcosistemaMarinoController/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(int id, IFormCollection collection)
+        {
+            try
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                return View();
+            }
+        }
 
-// GET: EcosistemaMarinoController/Edit/5
-public ActionResult Edit(int id)
-{
-    return View();
-}
+        // GET: EcosistemaMarinoController/Delete/5
+        public ActionResult Delete(int id)
+        {
+            return View();
+        }
 
-// POST: EcosistemaMarinoController/Edit/5
-[HttpPost]
-[ValidateAntiForgeryToken]
-public ActionResult Edit(int id, IFormCollection collection)
-{
-    try
-    {
-        return RedirectToAction(nameof(Index));
-    }
-    catch
-    {
-        return View();
-    }
-}
-
-// GET: EcosistemaMarinoController/Delete/5
-public ActionResult Delete(int id)
-{
-    return View();
-}
-
-// POST: EcosistemaMarinoController/Delete/5
-[HttpPost]
-[ValidateAntiForgeryToken]
-public ActionResult Delete(int id, IFormCollection collection)
-{
-    try
-    {
-        return RedirectToAction(nameof(Index));
-    }
-    catch
-    {
-        return View();
-    }
-}
+        // POST: EcosistemaMarinoController/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int id, IFormCollection collection)
+        {
+            try
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                return View();
+            }
+        }
     }
 }
