@@ -16,6 +16,10 @@
         //public string grados_Latitud { get; set; }
         //public string grados_Longitud { get; set; }
 
+        public EcosistemaMarinoModel()
+        {
+        }
+
 
         public string GradosMinutosSegundos(string valor, string tipo)
         {
@@ -61,3 +65,4 @@
 
         }
     }
+}

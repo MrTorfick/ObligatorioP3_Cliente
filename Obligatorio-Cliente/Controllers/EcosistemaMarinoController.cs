@@ -18,7 +18,7 @@ namespace Obligatorio_Cliente.Controllers
         private HttpClient cliente = new HttpClient();
         private string url = "http://localhost:5155/api";
         private string urlPaises = "https://restcountries.com/v3.1/all";
-        private bool PaisesCargados = false;
+        private bool PaisesCargados = true;
         private IWebHostEnvironment _environment;
 
         [HttpPost]
@@ -195,7 +195,7 @@ namespace Obligatorio_Cliente.Controllers
             {
 
                 if (ecosistemasMarinos == null || imagen.Count == 0 || SelectedOptionEstado == 0 || PaisSeleccionado == null || Latitud == null || Longitud == null)
-                    return View();
+                    return RedirectToAction(nameof(Error));
 
                 string LongitudTipo = "Longitud";
                 string LatitudTipo = "Latitud";
@@ -205,6 +205,7 @@ namespace Obligatorio_Cliente.Controllers
 
                 ecosistemasMarinos.Coordenadas = new CoordenadasModel(grados_Longitud, grados_Latitud);
                 ecosistemasMarinos.EstadoConservacionId = this.ObtenerEstadoConservacionPorId(SelectedOptionEstado).Id;
+                ecosistemasMarinos.Amenazas = new List<AmenazasAsociadasModel>();
                 foreach (var item in SelectedOptionsAmenazas)
                 {
                     AmenazaModel amenaza = this.ObtenerAmenazaPorId(item);
@@ -216,46 +217,26 @@ namespace Obligatorio_Cliente.Controllers
                         ecosistemasMarinos.Amenazas.Add(amenazasAsociadas);
                     }
                 }
+                ecosistemasMarinos.PaisId = ObtenerPaisPorISO(PaisSeleccionado).id;
+                EcosistemaMarinoModel ecosistemaMarino = AltaEcosistema(ecosistemasMarinos);
 
-
-                if (GuardarImagen(imagen, ecosistemasMarinos))
+                if (GuardarImagen(imagen, ecosistemaMarino))
                 {
-                    ecosistemasMarinos.Imagen = new List<ImagenModel>();
-                    ecosistemasMarinos.Amenazas = new List<AmenazasAsociadasModel>();
-                    ecosistemasMarinos.EspeciesHabitan = new List<EspecieMarinaModel>();
-                    ecosistemasMarinos.Coordenadas = new CoordenadasModel();
-                    ecosistemasMarinos.Coordenadas.Latitud = Latitud;
-                    ecosistemasMarinos.Coordenadas.Longitud = Longitud;
-                    //ecosistemasMarinos.grados_Latitud = ecosistemasMarinos.GradosMinutosSegundos(Latitud, "Latitud");
-                    //ecosistemasMarinos.grados_Latitud = "null";
-                    //ecosistemasMarinos.grados_Longitud = "null";
-
-                    Uri uri = new Uri(url + "/" + "EcosistemaMarino");
-                    HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Post, uri);
-
-                    string json = JsonConvert.SerializeObject(ecosistemasMarinos);
-                    Console.WriteLine(json);
-                    HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
-                    solicitud.Content = contenido;
-
-                    Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
-                    respuesta.Wait();
-
-                    if (respuesta.Result.IsSuccessStatusCode)
+                    if (UpdateEcosistema(ecosistemaMarino))
                     {
-                        Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
-                        response.Wait();
-                        EcosistemaMarinoModel equipo = JsonConvert.DeserializeObject<EcosistemaMarinoModel>(response.Result);
+                        return RedirectToAction(nameof(Index));
                     }
-                    return RedirectToAction(nameof(Index));
-
+                    else
+                    {
+                        return RedirectToAction(nameof(Error));
+                    }
                 }
                 else
                 {
-                    return RedirectToAction(nameof(Create), new { mensaje = "No se pudo guardar la imagen" });
+                    return RedirectToAction(nameof(Error));
                 }
 
-
+                return RedirectToAction(nameof(Index));
 
             }
             catch (Exception ex)
@@ -322,11 +303,65 @@ namespace Obligatorio_Cliente.Controllers
          
          
          */
+
+        private bool UpdateEcosistema(EcosistemaMarinoModel ecosistema)
+        {
+
+            Uri uri = new Uri(url + "/" + "EcosistemaMarino");
+            HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Put, uri);
+
+            string json = JsonConvert.SerializeObject(ecosistema);
+            Console.WriteLine(json);
+            HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
+            solicitud.Content = contenido;
+
+            Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+            respuesta.Wait();
+
+            if (respuesta.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+        private EcosistemaMarinoModel AltaEcosistema(EcosistemaMarinoModel ecosistema)
+        {
+            ecosistema.EspeciesHabitan = new List<EspecieMarinaModel>();
+            Uri uri = new Uri(url + "/" + "EcosistemaMarino");
+            HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            string json = JsonConvert.SerializeObject(ecosistema);
+            Console.WriteLine(json);
+            HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
+            solicitud.Content = contenido;
+
+            Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+            respuesta.Wait();
+
+            if (respuesta.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                EcosistemaMarinoModel ecosistemaMarino = JsonConvert.DeserializeObject<EcosistemaMarinoModel>(response.Result);
+                return ecosistemaMarino;
+            }
+            return null;
+
+        }
         private AmenazaModel ObtenerAmenazaPorId(int id)
         {
 
-            Uri uri = new Uri(url + "/" + "Amenaza" + id);
+            Uri uri = new Uri(url + "/" + "Amenaza" + "/" + id);
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            string json = JsonConvert.SerializeObject(id);
+            Console.WriteLine(json);
+            HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
             Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
             respuesta.Wait();
 
@@ -340,12 +375,34 @@ namespace Obligatorio_Cliente.Controllers
             return null;
         }
 
+        private PaisModel ObtenerPaisPorISO(string ISO)
+        {
+            Uri uri = new Uri(url + "/" + "Pais" + "/" + ISO);
+            HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            string json = JsonConvert.SerializeObject(ISO);
+            Console.WriteLine(json);
+            HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
+            Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+            respuesta.Wait();
+
+            if (respuesta.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                PaisModel pais = JsonConvert.DeserializeObject<PaisModel>(response.Result);
+                return pais;
+            }
+            return null;
+        }
 
 
         private EstadoConservacionModel ObtenerEstadoConservacionPorId(int id)
         {
-            Uri uri = new Uri(url + "/" + "EstadoConservacion" + id);
+            Uri uri = new Uri(url + "/" + "EstadoConservacion" + "/" + id);
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            string json = JsonConvert.SerializeObject(id);
+            Console.WriteLine(json);
+            HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
             Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
             respuesta.Wait();
 
