@@ -1,0 +1,95 @@
+﻿@model IEnumerable<Obligatorio_Cliente.Models.EspecieMarinaModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+@if (!String.IsNullOrEmpty(ViewBag.Mensaje))
+{
+    <div class="alert alert-danger">
+        @ViewBag.Mensaje
+    </div>
+}
+else
+{
+    <h1>Index</h1>
+
+    <p>
+        <a asp-action="Create">Create New</a>
+    </p>
+    @if (Model != null)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.NombreCientifico)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.NombreVulgar)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Descripcion)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Imagen)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Peso)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Longitud)
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.NombreCientifico)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.NombreVulgar)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Descripcion)
+                        </td>
+
+                        @if (item.Imagen != null && item.Imagen.Count() > 0)
+                        {
+                            <td>
+                                <dd class="col-sm-10">
+                                    <img class="img-thumbnail" src="~/images/especie/@item.Imagen.First().Valor" />
+                                </dd>
+                            </td>
+                        }
+
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Peso)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Longitud)
+                        </td>
+                        @if (ViewBag.Logueado != null)
+                        {
+                            <td>
+                                @Html.ActionLink("Asignar a un ecosistema", "AsociarEspecieAEcosistema", new {  id=item.Id})
+                            </td>
+                        }
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No hay especies</p>
+    }
+
+}
+
+

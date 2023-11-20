@@ -2,6 +2,8 @@
 {
     public class EspecieMarinaModel
     {
+
+        public int Id { get; set; }
         public string NombreCientifico { get; set; }
         public string NombreVulgar { get; set; }
         public string Descripcion { get; set; }

@@ -84,27 +84,17 @@ namespace Obligatorio_Cliente.Controllers
                 else
                 {
 
-
                     //cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
-                    Uri uri = new Uri(url + "/" + "EcosistemaMarino");
-                    HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
-                    Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
-                    respuesta.Wait();
+                    //cliente.DefaultRequestHeaders.Add("Accept", "application/json"); ?
+                    IEnumerable<EcosistemaMarinoModel> ecosistemaMarinos = GetEcosistemaMarinos();
+                    return View(ecosistemaMarinos);
 
-                    if (respuesta.Result.IsSuccessStatusCode)
-                    {
-                        Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
-                        response.Wait();
-                        IEnumerable<EcosistemaMarinoModel> ecosistemaMarinos = JsonConvert.DeserializeObject<IEnumerable<EcosistemaMarinoModel>>(response.Result);
-                        //Paises
-
-                        return View(ecosistemaMarinos);
-                    }
                     return RedirectToAction("Error");
                 }
             }
             catch (Exception ex)
             {
+                //TODO
                 return RedirectToAction("Error");
             }
         }
@@ -236,8 +226,6 @@ namespace Obligatorio_Cliente.Controllers
                     return RedirectToAction(nameof(Error));
                 }
 
-                return RedirectToAction(nameof(Index));
-
             }
             catch (Exception ex)
             {
@@ -303,7 +291,33 @@ namespace Obligatorio_Cliente.Controllers
          
          
          */
+        private IEnumerable<EcosistemaMarinoModel> GetEcosistemaMarinos()
+        {
+            try
+            {
+                Uri uri = new Uri(url + "/" + "EcosistemaMarino");
+                HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+                Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+                respuesta.Wait();
 
+                if (respuesta.Result.IsSuccessStatusCode)
+                {
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    response.Wait();
+                    IEnumerable<EcosistemaMarinoModel> ecosistemaMarinos = JsonConvert.DeserializeObject<IEnumerable<EcosistemaMarinoModel>>(response.Result);
+                    return ecosistemaMarinos;
+                }
+                else
+                {
+                    return null;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
         private bool UpdateEcosistema(EcosistemaMarinoModel ecosistema)
         {
 
