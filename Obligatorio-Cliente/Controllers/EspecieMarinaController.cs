@@ -136,6 +136,115 @@ namespace Obligatorio_Cliente.Controllers
             }
         }
 
+        public ActionResult AsociarEspecieAEcosistema(string mensaje, int id)
+        {
+            try
+            {
+                if (HttpContext.Session.GetString("LogueadoNombre") != null)
+                {
+                    List<EspecieEcosistemaModel> especieAsociarEcosistema = new List<EspecieEcosistemaModel>();
+                    EspecieMarinaModel especieMarina = ObtenerEspeciePorId(id);
+                    if (especieMarina != null)
+                    {
+
+                        TempData["idEspecie"] = especieMarina.Id;
+
+
+                        foreach (EcosistemaMarinoModel item in especieMarina.EcosistemaMarinos)
+                        {
+                            if (item != null)
+                            {
+                                EspecieEcosistemaModel aux = new EspecieEcosistemaModel();
+                                aux.ecosistemasMarinos = item;
+                                especieAsociarEcosistema.Add(aux);
+
+                            }
+
+                        }
+                        ViewBag.Mensaje = mensaje;
+                        return View(especieAsociarEcosistema);
+
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(AsociarEspecieAEcosistema), new { mensaje = "No se encontro la especie" });
+                    }
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                return RedirectToAction(nameof(AsociarEspecieAEcosistema), new { mensaje = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public ActionResult AsociarEspecieAEcosistema(int EcosistemaSeleccionado)
+        {
+
+            try
+            {
+                int idEspecie = (int)TempData["idEspecie"];
+                EspecieMarinaModel especieMarina = ObtenerEspeciePorId(idEspecie);
+
+                IEnumerable<EspecieMarinaModel> especieMarinas = BuscarEspeciesQueHabitanUnEcosistema(EcosistemaSeleccionado);
+
+                foreach (var item in especieMarinas)
+                {
+                    if (item.Id == idEspecie)
+                    {
+                        return RedirectToAction(nameof(AsociarEspecieAEcosistema), new { mensaje = "La especie ya se encuentra asociada al ecosistema" });
+                    }
+                }
+
+                EcosistemaMarinoModel ecosistemaMarino = obtenerEcosistemaMarinoPorId(EcosistemaSeleccionado);
+
+                foreach (var item in ecosistemaMarino.Amenazas)
+                {
+                    foreach (var item1 in especieMarina.Amenazas)
+                    {
+                        if (item.AmenazaId == item1.AmenazaId)
+                        {
+                            return RedirectToAction(nameof(AsociarEspecieAEcosistema), new { mensaje = "La especie no puede habitar el ecosistema porque tiene amenazas en comun" });
+                        }
+                    }
+                }
+                //Ecosistema
+                EstadoConservacionModel estadoConservacionEcosistema = ObtenerEstadoConservacionPorId((int)ecosistemaMarino.EstadoConservacionId);
+                RangosModel rangosEcosistema = new RangosModel();
+                rangosEcosistema.Minimo = estadoConservacionEcosistema.Rangos.Minimo;
+                rangosEcosistema.Maximo = estadoConservacionEcosistema.Rangos.Maximo;
+
+                //Especie
+                EstadoConservacionModel estadoConservacionEspecie = ObtenerEstadoConservacionPorId((int)especieMarina.EstadoConservacionId);
+                RangosModel rangosEspecie = new RangosModel();
+                rangosEspecie.Minimo = estadoConservacionEspecie.Rangos.Minimo;
+                rangosEspecie.Maximo = estadoConservacionEspecie.Rangos.Maximo;
+
+                if (rangosEcosistema.Minimo < rangosEspecie.Minimo)
+                {
+                    return RedirectToAction(nameof(AsociarEspecieAEcosistema), new { mensaje = "La especie no puede habitar el ecosistema porque el estado de conservacion del ecosistema es menor al de la especie" });
+                }
+
+
+                asociarEspecieEcosistemaUC.AsociarEspecieAEcosistema(idEspecie, EcosistemaSeleccionado, HttpContext.Session.GetString("LogueadoNombre"));
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+
+                return RedirectToAction(nameof(AsociarEspecieAEcosistema), new { mensaje = ex.Message });
+            }
+        }
+
+
+
+
         // GET: EspecieMarinaController/Edit/5
         public ActionResult Edit(int id)
         {
@@ -255,6 +364,41 @@ namespace Obligatorio_Cliente.Controllers
                 return especieMarina;
             }
             return null;
+
+        }
+
+        private EspecieMarinaModel ObtenerEspeciePorId(int id)
+        {
+
+            try
+            {
+                Uri uri = new Uri(url + "/" + "EspecieMarina" + "/" + "Especie" + "/" + id);
+                HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+                string json = JsonConvert.SerializeObject(id);
+                Console.WriteLine(json);
+                HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
+                Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+                respuesta.Wait();
+
+                if (respuesta.Result.IsSuccessStatusCode)
+                {
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    response.Wait();
+                    EspecieMarinaModel especie = JsonConvert.DeserializeObject<EspecieMarinaModel>(response.Result);
+                    return especie;
+                }
+                else
+                {
+                    int codigoDeError = (int)respuesta.Result.StatusCode;
+                    throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError} {respuesta.Result.StatusCode}");
+                }
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
 
         }
 
@@ -461,6 +605,55 @@ namespace Obligatorio_Cliente.Controllers
             catch (Exception)
             {
                 throw;
+            }
+        }
+
+
+        private EstadoConservacionModel ObtenerEstadoConservacionPorId(int id)
+        {
+            Uri uri = new Uri(url + "/" + "EstadoConservacion" + "/" + id);
+            HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            string json = JsonConvert.SerializeObject(id);
+            Console.WriteLine(json);
+            HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
+            Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+            respuesta.Wait();
+
+            if (respuesta.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                EstadoConservacionModel estadoConservacion = JsonConvert.DeserializeObject<EstadoConservacionModel>(response.Result);
+                return estadoConservacion;
+            }
+            else
+            {
+                int codigoDeError = (int)respuesta.Result.StatusCode;
+                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError} {respuesta.Result.StatusCode}");
+            }
+        }
+
+        private IEnumerable<EspecieMarinaModel> BuscarEspeciesQueHabitanUnEcosistema(int idEcosistema)
+        {
+            Uri uri = new Uri(url + "/" + "EspecieMarina" + "/" + "EspeciesPorEcosistema" + "/" + idEcosistema);
+            HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            string json = JsonConvert.SerializeObject(idEcosistema);
+            Console.WriteLine(json);
+            HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
+            Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+            respuesta.Wait();
+
+            if (respuesta.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                IEnumerable<EspecieMarinaModel> especieMarinas = JsonConvert.DeserializeObject<IEnumerable<EspecieMarinaModel>>(response.Result);
+                return especieMarinas;
+            }
+            else
+            {
+                int codigoDeError = (int)respuesta.Result.StatusCode;
+                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError} {respuesta.Result.StatusCode}");
             }
         }
     }
