@@ -21,6 +21,11 @@ namespace Obligatorio_Cliente.Controllers
         private bool PaisesCargados = true;
         private IWebHostEnvironment _environment;
 
+        public EcosistemaMarinoController(IWebHostEnvironment environment)
+        {
+            _environment = environment;
+        }
+
         [HttpPost]
         private bool CargarPaises()
         {
@@ -68,10 +73,7 @@ namespace Obligatorio_Cliente.Controllers
             return true;
         }
 
-        public EcosistemaMarinoController(IWebHostEnvironment environment)
-        {
-            _environment = environment;
-        }
+        
 
         public ActionResult Index()
         {
@@ -320,27 +322,35 @@ namespace Obligatorio_Cliente.Controllers
         }
         private bool UpdateEcosistema(EcosistemaMarinoModel ecosistema)
         {
-
-            Uri uri = new Uri(url + "/" + "EcosistemaMarino");
-            HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Put, uri);
-
-            string json = JsonConvert.SerializeObject(ecosistema);
-            Console.WriteLine(json);
-            HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
-            solicitud.Content = contenido;
-
-            Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
-            respuesta.Wait();
-
-            if (respuesta.Result.IsSuccessStatusCode)
+            try
             {
-                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
-                response.Wait();
-                return true;
+                Uri uri = new Uri(url + "/" + "EcosistemaMarino");
+                HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Put, uri);
+
+                string json = JsonConvert.SerializeObject(ecosistema);
+                Console.WriteLine(json);
+                HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
+                solicitud.Content = contenido;
+
+                Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+                respuesta.Wait();
+
+                if (respuesta.Result.IsSuccessStatusCode)
+                {
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    response.Wait();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
             }
-            else
+            catch (Exception)
             {
-                return false;
+
+                throw;
             }
 
         }

@@ -1,0 +1,46 @@
+﻿@model IEnumerable<Obligatorio_Cliente.Models.ConfiguracionModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.NombreAtributo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.topeSuperior)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.topeInferior)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NombreAtributo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.topeSuperior)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.topeInferior)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { NombreAtributo=item.NombreAtributo })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
