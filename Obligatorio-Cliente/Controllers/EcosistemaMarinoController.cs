@@ -32,6 +32,7 @@ namespace Obligatorio_Cliente.Controllers
             {
                 ViewBag.Mensaje = mensaje;
                 IEnumerable<EcosistemaMarinoModel> ecosistemaMarinos = GetEcosistemaMarinos();
+                ViewBag.Logueado = HttpContext.Session.GetString("usuario");
                 return View(ecosistemaMarinos);
             }
             catch (Exception ex)
@@ -506,10 +507,10 @@ namespace Obligatorio_Cliente.Controllers
         // GET: EcosistemaMarinoController/Delete/5
         public ActionResult Delete(int id)
         {
-            if (HttpContext.Session.GetString("LogueadoNombre") != null)
+            if (HttpContext.Session.GetString("usuario") != null)
             {
 
-                EcosistemaMarinoModel ecosistemaMarino = obtenerEcosistemaMarinoPorIdUC.ObtenerEcosistemaMarinoPorId(id);
+                EcosistemaMarinoModel ecosistemaMarino = obtenerEcosistemaMarinoPorId(id);
                 if (ecosistemaMarino != null && ecosistemaMarino.EspeciesHabitan != null)
                 {
                     if (ecosistemaMarino.EspeciesHabitan.Count > 0)
@@ -535,11 +536,80 @@ namespace Obligatorio_Cliente.Controllers
         {
             try
             {
+                BorrarEcosistema(id);
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                return RedirectToAction(nameof(Index), new { mensaje = ex.Message });
+            }
+        }
+
+
+
+        private void BorrarEcosistema(int id)
+        {
+            try
+            {
+                cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
+                Uri uri = new Uri(url + "/" + "EcosistemaMarino" + "/" + id);
+                HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Delete, uri);
+                solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
+                Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+                respuesta.Wait();
+
+                if (respuesta.Result.IsSuccessStatusCode)
+                {
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    response.Wait();
+                }
+                else
+                {
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    int codigoDeError = (int)respuesta.Result.StatusCode;
+                    string mensaje = response.Result.ToString();
+                    throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+
+
+        private EcosistemaMarinoModel obtenerEcosistemaMarinoPorId(int id)
+        {
+            try
+            {
+                cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
+                Uri uri = new Uri(url + "/" + "EcosistemaMarino" + "/" + id);
+                HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+                solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
+                Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+                respuesta.Wait();
+
+                if (respuesta.Result.IsSuccessStatusCode)
+                {
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    response.Wait();
+                    EcosistemaMarinoModel ecosistemaMarino = JsonConvert.DeserializeObject<EcosistemaMarinoModel>(response.Result);
+                    return ecosistemaMarino;
+                }
+                else
+                {
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    int codigoDeError = (int)respuesta.Result.StatusCode;
+                    string mensaje = response.Result.ToString();
+                    throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
     }

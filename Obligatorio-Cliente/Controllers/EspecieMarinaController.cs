@@ -24,6 +24,7 @@ namespace Obligatorio_Cliente.Controllers
         {
             try
             {
+                ViewBag.Logueado = HttpContext.Session.GetString("usuario");
                 return View(GetEspeciesMarinas());
 
             }
