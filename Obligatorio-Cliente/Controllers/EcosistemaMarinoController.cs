@@ -26,22 +26,17 @@ namespace Obligatorio_Cliente.Controllers
 
 
 
-        public ActionResult Index()
+        public ActionResult Index(string mensaje)
         {
             try
             {
-                //cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
-                //cliente.DefaultRequestHeaders.Add("Accept", "application/json"); ?
+                ViewBag.Mensaje = mensaje;
                 IEnumerable<EcosistemaMarinoModel> ecosistemaMarinos = GetEcosistemaMarinos();
                 return View(ecosistemaMarinos);
-
-                return RedirectToAction("Error");
-
             }
             catch (Exception ex)
             {
-                //TODO
-                return RedirectToAction("Error");
+                return RedirectToAction(nameof(Create), new { mensaje = "No se pudo guardar la imagen" });
             }
         }
 
@@ -57,67 +52,83 @@ namespace Obligatorio_Cliente.Controllers
         }
 
         // GET: EcosistemaMarinoController/Create
-        public ActionResult Create()
+        public ActionResult Create(string mensaje)
         {
 
-
-            HttpClient clientePaises = new HttpClient();
-            clientePaises.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
-            Uri uriPaises = new Uri(url + "/" + "Pais");
-            HttpRequestMessage solicitudPaises = new HttpRequestMessage(HttpMethod.Get, uriPaises);
-            solicitudPaises.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
-            Task<HttpResponseMessage> respuestaPaises = clientePaises.SendAsync(solicitudPaises);
-            respuestaPaises.Wait();
-
-            if (respuestaPaises.Result.IsSuccessStatusCode)
+            if (HttpContext.Session.GetString("usuario") != null)
             {
-                Task<string> responsePaises = respuestaPaises.Result.Content.ReadAsStringAsync();
-                responsePaises.Wait();
-                IEnumerable<PaisModel> paises = JsonConvert.DeserializeObject<IEnumerable<PaisModel>>(responsePaises.Result);
-                ViewBag.Paises = paises;
+                ViewBag.Mensaje = mensaje;
+
+                HttpClient clientePaises = new HttpClient();
+                clientePaises.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
+                Uri uriPaises = new Uri(url + "/" + "Pais");
+                HttpRequestMessage solicitudPaises = new HttpRequestMessage(HttpMethod.Get, uriPaises);
+                solicitudPaises.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
+                Task<HttpResponseMessage> respuestaPaises = clientePaises.SendAsync(solicitudPaises);
+                respuestaPaises.Wait();
+
+                if (respuestaPaises.Result.IsSuccessStatusCode)
+                {
+                    Task<string> responsePaises = respuestaPaises.Result.Content.ReadAsStringAsync();
+                    responsePaises.Wait();
+                    IEnumerable<PaisModel> paises = JsonConvert.DeserializeObject<IEnumerable<PaisModel>>(responsePaises.Result);
+                    ViewBag.Paises = paises;
+                }
+                else
+                {
+                    Task<string> response = respuestaPaises.Result.Content.ReadAsStringAsync();
+                    int codigoDeError = (int)respuestaPaises.Result.StatusCode;
+                    string aux = response.Result.ToString();
+                    return RedirectToAction(nameof(Create), new { mensaje = $"Error: {codigoDeError}, {aux}" });
+
+                }
+                cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
+                Uri uriEstadosConservacion = new Uri(url + "/" + "EstadoConservacion");
+                HttpRequestMessage solicitudEstadosConservacion = new HttpRequestMessage(HttpMethod.Get, uriEstadosConservacion);
+                solicitudEstadosConservacion.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
+                Task<HttpResponseMessage> respuestaEstadosConservacion = cliente.SendAsync(solicitudEstadosConservacion);
+                respuestaEstadosConservacion.Wait();
+                if (respuestaEstadosConservacion.Result.IsSuccessStatusCode)
+                {
+                    Task<string> response = respuestaEstadosConservacion.Result.Content.ReadAsStringAsync();
+                    response.Wait();
+                    IEnumerable<EstadoConservacionModel> estadoConservacionModels = JsonConvert.DeserializeObject<IEnumerable<EstadoConservacionModel>>(response.Result);
+                    ViewBag.EstadosConservacion = estadoConservacionModels;
+                }
+                else
+                {
+                    Task<string> response = respuestaPaises.Result.Content.ReadAsStringAsync();
+                    int codigoDeError = (int)respuestaPaises.Result.StatusCode;
+                    string aux = response.Result.ToString();
+                    return RedirectToAction(nameof(Create), new { mensaje = $"Error: {codigoDeError}, {aux}" });
+
+                }
+                Uri uriAmenazas = new Uri(url + "/" + "Amenaza");
+                HttpRequestMessage solicitudAmenazas = new HttpRequestMessage(HttpMethod.Get, uriAmenazas);
+                solicitudAmenazas.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
+                Task<HttpResponseMessage> respuestaAmenazas = cliente.SendAsync(solicitudAmenazas);
+                respuestaAmenazas.Wait();
+                if (respuestaAmenazas.Result.IsSuccessStatusCode)
+                {
+                    Task<string> response = respuestaAmenazas.Result.Content.ReadAsStringAsync();
+                    response.Wait();
+                    IEnumerable<AmenazaModel> amenazaModels = JsonConvert.DeserializeObject<IEnumerable<AmenazaModel>>(response.Result);
+                    ViewBag.Amenazas = amenazaModels;
+                }
+                else
+                {
+                    Task<string> response = respuestaPaises.Result.Content.ReadAsStringAsync();
+                    int codigoDeError = (int)respuestaPaises.Result.StatusCode;
+                    string aux = response.Result.ToString();
+                    return RedirectToAction(nameof(Create), new { mensaje = $"Error: {codigoDeError}, {aux}" });
+
+                }
+
             }
             else
             {
-                return RedirectToAction("Error");
+                return RedirectToAction(nameof(Index));
             }
-            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
-            Uri uriEstadosConservacion = new Uri(url + "/" + "EstadoConservacion");
-            HttpRequestMessage solicitudEstadosConservacion = new HttpRequestMessage(HttpMethod.Get, uriEstadosConservacion);
-            solicitudEstadosConservacion.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
-            Task<HttpResponseMessage> respuestaEstadosConservacion = cliente.SendAsync(solicitudEstadosConservacion);
-            respuestaEstadosConservacion.Wait();
-            if (respuestaEstadosConservacion.Result.IsSuccessStatusCode)
-            {
-                Task<string> response = respuestaEstadosConservacion.Result.Content.ReadAsStringAsync();
-                response.Wait();
-                IEnumerable<EstadoConservacionModel> estadoConservacionModels = JsonConvert.DeserializeObject<IEnumerable<EstadoConservacionModel>>(response.Result);
-                ViewBag.EstadosConservacion = estadoConservacionModels;
-            }
-            else
-            {
-                return RedirectToAction("Error");
-
-            }
-            Uri uriAmenazas = new Uri(url + "/" + "Amenaza");
-            HttpRequestMessage solicitudAmenazas = new HttpRequestMessage(HttpMethod.Get, uriAmenazas);
-            solicitudAmenazas.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
-            Task<HttpResponseMessage> respuestaAmenazas = cliente.SendAsync(solicitudAmenazas);
-            respuestaAmenazas.Wait();
-            if (respuestaAmenazas.Result.IsSuccessStatusCode)
-            {
-                Task<string> response = respuestaAmenazas.Result.Content.ReadAsStringAsync();
-                response.Wait();
-                IEnumerable<AmenazaModel> amenazaModels = JsonConvert.DeserializeObject<IEnumerable<AmenazaModel>>(response.Result);
-                ViewBag.Amenazas = amenazaModels;
-            }
-            else
-            {
-                return RedirectToAction("Error");
-
-            }
-
-
-            //ViewBag.Mensaje = mensaje;
             return View();
         }
 
@@ -157,27 +168,19 @@ namespace Obligatorio_Cliente.Controllers
 
                 if (GuardarImagen(imagen, ecosistemaMarino))
                 {
-                    if (UpdateEcosistema(ecosistemaMarino))
-                    {
-                        return RedirectToAction(nameof(Index));
-                    }
-                    else
-                    {
-                        return RedirectToAction(nameof(Error));
-                    }
+                    UpdateEcosistema(ecosistemaMarino);
+                    return RedirectToAction(nameof(Index));
                 }
                 else
                 {
-                    return RedirectToAction(nameof(Error));
+                    return RedirectToAction(nameof(Create), new { mensaje = "No se pudo guardar la imagen" });
                 }
 
             }
             catch (Exception ex)
             {
-                return RedirectToAction(nameof(Create), new
-                {
-                    mensaje = ex.Message
-                });
+                return RedirectToAction(nameof(Create), new { mensaje = ex.Message });
+
             }
         }
 
@@ -503,7 +506,26 @@ namespace Obligatorio_Cliente.Controllers
         // GET: EcosistemaMarinoController/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            if (HttpContext.Session.GetString("LogueadoNombre") != null)
+            {
+
+                EcosistemaMarinoModel ecosistemaMarino = obtenerEcosistemaMarinoPorIdUC.ObtenerEcosistemaMarinoPorId(id);
+                if (ecosistemaMarino != null && ecosistemaMarino.EspeciesHabitan != null)
+                {
+                    if (ecosistemaMarino.EspeciesHabitan.Count > 0)
+                    {
+                        return RedirectToAction(nameof(Index), new { mensaje = "No se puede eliminar el ecosistema marino porque tiene especies que lo habitan" });
+                    }
+                }
+                return View(ecosistemaMarino);
+
+            }
+            else
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+
         }
 
         // POST: EcosistemaMarinoController/Delete/5

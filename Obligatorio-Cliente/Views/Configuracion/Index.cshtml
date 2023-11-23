@@ -4,6 +4,13 @@
     ViewData["Title"] = "Index";
 }
 
+
+@if (!String.IsNullOrEmpty(ViewBag.Mensaje))
+{
+    <div class="alert alert-danger">
+        @ViewBag.Mensaje
+    </div>
+}
 <h1>Index</h1>
 
 <p>

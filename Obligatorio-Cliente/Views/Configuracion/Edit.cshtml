@@ -4,6 +4,13 @@
     ViewData["Title"] = "Edit";
 }
 
+
+@if (!String.IsNullOrEmpty(ViewBag.Mensaje))
+{
+    <div class="alert alert-danger">
+        @ViewBag.Mensaje
+    </div>
+}
 <h1>Edit</h1>
 
 <h4>ConfiguracionModel</h4>
@@ -39,5 +46,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

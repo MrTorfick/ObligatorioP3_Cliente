@@ -73,12 +73,12 @@ else
                         <td>
                             @Html.DisplayFor(modelItem => item.Longitud)
                         </td>
-                        @* @if (ViewBag.Logueado != null)*@
-                        @*{*@
-                        <td>
-                            @Html.ActionLink("Asignar a un ecosistema", "AsociarEspecieAEcosistema", new {  id=item.Id})
-                        </td>
-                        @* }*@
+                        @if (ViewBag.Logueado != null)
+                        {
+                            <td>
+                                @Html.ActionLink("Asignar a un ecosistema", "AsociarEspecieAEcosistema", new {  id=item.Id})
+                            </td>
+                        }
 
                     </tr>
                 }

@@ -3,58 +3,105 @@
 @{
     ViewData["Title"] = "Index";
 }
+@if (!String.IsNullOrEmpty(ViewBag.Mensaje))
+{
+    <div class="alert alert-danger">
+        @ViewBag.Mensaje
+    </div>
+}
 
 <h1>Index</h1>
+
+
 
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Nombre)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Area)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DescripcionCaracteristicas)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PaisId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EstadoConservacionId)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+
+@if (Model != null)
+{
+    <table class="table">
+        <thead>
             <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Nombre)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Area)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DescripcionCaracteristicas)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.PaisId)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.EstadoConservacionId)
-                </td>
-                <td>
-                    @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                    @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                    @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-                </td>
+
+                <th>
+                    @Html.DisplayNameFor(model => model.Nombre)
+                </th>
+
+                <th>
+                    @Html.DisplayNameFor(model => model.Coordenadas.Latitud)
+                </th>
+
+                <th>
+                    @Html.DisplayNameFor(model => model.Coordenadas.Longitud)
+                </th>
+
+                <th>
+                    @Html.DisplayNameFor(model => model.Imagen)
+                </th>
+
+                <th>
+                    @Html.DisplayNameFor(model => model.Area)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DescripcionCaracteristicas)
+                </th>
+
+                <th></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Nombre)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Coordenadas.Latitud)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Coordenadas.Longitud)
+                    </td>
+
+                    @if (item.Imagen != null && item.Imagen.Count() > 0)
+                    {
+                        <td>
+                            <dd class="col-sm-10">
+                                <img class="img-thumbnail" src="~/images/ecosistema/@item.Imagen.First().Valor" />
+                            </dd>
+                        </td>
+                    }
+                    else
+                    {
+                        <td>
+                            <p>No hay imagen</p>
+                        </td>
+                    }
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Area)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DescripcionCaracteristicas)
+                    </td>
+                    @if (ViewBag.Logueado != null)
+                    {
+                        <td>
+                            @* @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |*@
+                            @* @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |*@
+                            @Html.ActionLink("Delete", "Delete", new {  id=item.Id })
+                        </td>
+                    }
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No hay ecosistemas marinos</p>
+}

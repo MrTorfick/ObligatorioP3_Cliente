@@ -14,17 +14,17 @@ namespace Obligatorio_Cliente.Controllers
         private string url = "http://localhost:5155/api";
 
         // GET: ConfiguracionController
-        public ActionResult Index()
+        public ActionResult Index(string mensaje)
         {
             try
             {
+                ViewBag.Mensaje = mensaje;
                 return View(GetConfiguraciones());
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //TODO
-                throw;
+                return RedirectToAction(nameof(Index), new { mensaje = ex.Message });
             }
         }
 
@@ -56,10 +56,11 @@ namespace Obligatorio_Cliente.Controllers
         }
 
         // GET: ConfiguracionController/Edit/5
-        public ActionResult Edit(string NombreAtributo)
+        public ActionResult Edit(string NombreAtributo, string mensaje)
         {
             try
             {
+                ViewBag.Mensaje = mensaje;
                 if (NombreAtributo != null)
                 {
                     return View(ObtenerConfiguracionPorNombre(NombreAtributo));
@@ -69,11 +70,12 @@ namespace Obligatorio_Cliente.Controllers
                     return RedirectToAction(nameof(Index));
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //TODO
-                throw;
+
+                RedirectToAction(nameof(Index), new { mensaje = ex.Message });
             }
+            return View();
 
         }
 
@@ -87,10 +89,9 @@ namespace Obligatorio_Cliente.Controllers
                 UpdateConfiguracion(config);
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
-                //TODO
-                return View();
+                return RedirectToAction(nameof(Index), new { mensaje = ex.Message });
             }
         }
 
