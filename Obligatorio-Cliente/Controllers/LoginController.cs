@@ -38,7 +38,15 @@ namespace Obligatorio_Cliente.Controllers
                 UsuarioModel usuario = JsonConvert.DeserializeObject<UsuarioModel>(response.Result);
                 HttpContext.Session.SetString("token", usuario.token);
                 HttpContext.Session.SetString("usuario", usuario.nombre);
-                return RedirectToAction("Index", "Equipo");
+                if (usuario.EsAdmin)
+                {
+                    HttpContext.Session.SetString("LogueadoRol", "admin");
+                }
+                else
+                {
+                    HttpContext.Session.SetString("LogueadoRol", "default");
+                }
+                return RedirectToAction("Index", "Home");
             }
             return RedirectToAction("Login");
         }

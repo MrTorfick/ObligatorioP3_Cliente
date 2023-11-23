@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Obligatorio_Cliente.Models;
 using System.Data;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace Obligatorio_Cliente.Controllers
@@ -400,6 +401,67 @@ namespace Obligatorio_Cliente.Controllers
         }
 
 
+        public ActionResult BuscarEspeciesQueHabitanEcosistema(string mensaje)
+        {
+            ViewBag.Mensaje = mensaje;
+            ViewBag.listaEcosistemas = GetEcosistemaMarinos();
+            return View();
+
+        }
+
+
+        [HttpPost]
+        public ActionResult BuscarEspeciesQueHabitanEcosistema(int EcosistemaSeleccionado)
+        {
+            ViewBag.listaEcosistemas = GetEcosistemaMarinos();
+
+            try
+            {
+                IEnumerable<EspecieMarinaModel> especiesMarinas = BuscarEspeciesQueHabitanUnEcosistema(EcosistemaSeleccionado);
+                if (especiesMarinas != null && especiesMarinas.Count() > 0)
+                {
+                    return View(especiesMarinas);
+                }
+                else
+                {
+                    return RedirectToAction(nameof(BuscarEspeciesQueHabitanEcosistema), new { mensaje = "No se encontro una especie que habite el ecosistema" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction(nameof(BuscarEspeciesQueHabitanEcosistema), new { mensaje = ex.Message });
+            }
+
+        }
+
+
+        public ActionResult BuscarEspeciesEnPeligroDeExtincion()
+        {
+            try
+            {
+
+                IEnumerable<EspecieMarinaModel> especieMarinas = GetEspeciesEnPeligroDeExtincion();
+
+                if (especieMarinas != null && especieMarinas.Count() > 0)
+                {
+                    return View(especieMarinas);
+                }
+                else
+                {
+                    ViewBag.Mensaje = "No se encontraron especies en peligro de extincion";
+                    return View();
+                }
+            }
+            catch (Exception ex)
+            {
+
+                ViewBag.Mensaje = ex.Message;
+                return View();
+            }
+
+        }
+
+
 
 
         private bool GuardarImagen(List<IFormFile> imagen, EspecieMarinaModel em)
@@ -457,11 +519,36 @@ namespace Obligatorio_Cliente.Controllers
         }
 
 
+        private IEnumerable<EspecieMarinaModel> GetEspeciesEnPeligroDeExtincion()
+        {
+            Uri uri = new Uri(url + "/" + "EspecieMarina" + "/" + "PeligroDeExtincion");
+            HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+            respuesta.Wait();
+
+            if (respuesta.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                IEnumerable<EspecieMarinaModel> especieMarinas = JsonConvert.DeserializeObject<IEnumerable<EspecieMarinaModel>>(response.Result);
+                return especieMarinas;
+            }
+            else
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                int codigoDeError = (int)respuesta.Result.StatusCode;
+                string mensaje = response.Result.ToString();
+                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
+
+            }
+        }
+
         private EspecieMarinaModel AltaEspecie(EspecieMarinaModel especie)
         {
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uri = new Uri(url + "/" + "EspecieMarina");
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Post, uri);
-
+            solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             string json = JsonConvert.SerializeObject(especie);
             Console.WriteLine(json);
             HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
@@ -489,9 +576,10 @@ namespace Obligatorio_Cliente.Controllers
 
         private string AsociarEspecieAEcosistema(AsociarEspecieModel asociar)
         {
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uri = new Uri(url + "/" + "EspecieMarina" + "/" + "Asociar");
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Post, uri);
-
+            solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             string json = JsonConvert.SerializeObject(asociar);
             Console.WriteLine(json);
             HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
@@ -526,8 +614,10 @@ namespace Obligatorio_Cliente.Controllers
 
             try
             {
+                cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
                 Uri uri = new Uri(url + "/" + "EspecieMarina" + "/" + "Especie" + "/" + id);
                 HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+                solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
                 string json = JsonConvert.SerializeObject(id);
                 Console.WriteLine(json);
                 HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
@@ -539,6 +629,45 @@ namespace Obligatorio_Cliente.Controllers
                     Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
                     response.Wait();
                     EspecieMarinaModel especie = JsonConvert.DeserializeObject<EspecieMarinaModel>(response.Result);
+                    return especie;
+                }
+                else
+                {
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    int codigoDeError = (int)respuesta.Result.StatusCode;
+                    string mensaje = response.Result.ToString();
+                    throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
+                }
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+        }
+
+
+
+        private IEnumerable<EspecieMarinaModel> ObtenerEspeciesHabitanEcosistema(int id)
+        {
+
+            try
+            {
+                Uri uri = new Uri(url + "/" + "EspecieMarina" + "/" + "EspeciesHabitanEcosistema" + "/" + id);
+                HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+                string json = JsonConvert.SerializeObject(id);
+                Console.WriteLine(json);
+                HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
+                Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
+                respuesta.Wait();
+
+                if (respuesta.Result.IsSuccessStatusCode)
+                {
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    response.Wait();
+                    IEnumerable<EspecieMarinaModel> especie = JsonConvert.DeserializeObject<IEnumerable<EspecieMarinaModel>>(response.Result);
                     return especie;
                 }
                 else
@@ -631,9 +760,10 @@ namespace Obligatorio_Cliente.Controllers
         {
             try
             {
+                cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
                 Uri uri = new Uri(url + "/" + "EspecieMarina");
                 HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Put, uri);
-
+                solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
                 string json = JsonConvert.SerializeObject(especie);
                 Console.WriteLine(json);
                 HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
@@ -669,9 +799,10 @@ namespace Obligatorio_Cliente.Controllers
 
         private AmenazaModel ObtenerAmenazaPorId(int id)
         {
-
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uri = new Uri(url + "/" + "Amenaza" + "/" + id);
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             string json = JsonConvert.SerializeObject(id);
             Console.WriteLine(json);
             HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
@@ -736,8 +867,10 @@ namespace Obligatorio_Cliente.Controllers
         {
             try
             {
+                cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
                 Uri uri = new Uri(url + "/" + "EcosistemaMarino" + "/" + id);
                 HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+                solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
                 Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
                 respuesta.Wait();
 
@@ -800,8 +933,10 @@ namespace Obligatorio_Cliente.Controllers
         {
             try
             {
+                cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
                 Uri uriAmenazas = new Uri(url + "/" + "Amenaza");
                 HttpRequestMessage solicitudAmenazas = new HttpRequestMessage(HttpMethod.Get, uriAmenazas);
+                solicitudAmenazas.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
                 Task<HttpResponseMessage> respuestaAmenazas = cliente.SendAsync(solicitudAmenazas);
                 respuestaAmenazas.Wait();
                 if (respuestaAmenazas.Result.IsSuccessStatusCode)
@@ -832,8 +967,11 @@ namespace Obligatorio_Cliente.Controllers
         {
             try
             {
+                cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
+
                 Uri uriEstadosConservacion = new Uri(url + "/" + "EstadoConservacion");
                 HttpRequestMessage solicitudEstadosConservacion = new HttpRequestMessage(HttpMethod.Get, uriEstadosConservacion);
+                solicitudEstadosConservacion.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
                 Task<HttpResponseMessage> respuestaEstadosConservacion = cliente.SendAsync(solicitudEstadosConservacion);
                 respuestaEstadosConservacion.Wait();
                 if (respuestaEstadosConservacion.Result.IsSuccessStatusCode)
@@ -895,8 +1033,10 @@ namespace Obligatorio_Cliente.Controllers
 
         private EstadoConservacionModel ObtenerEstadoConservacionPorId(int id)
         {
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uri = new Uri(url + "/" + "EstadoConservacion" + "/" + id);
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             string json = JsonConvert.SerializeObject(id);
             Console.WriteLine(json);
             HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");

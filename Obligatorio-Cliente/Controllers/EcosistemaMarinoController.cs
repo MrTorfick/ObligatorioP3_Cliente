@@ -60,9 +60,12 @@ namespace Obligatorio_Cliente.Controllers
         public ActionResult Create()
         {
 
+
             HttpClient clientePaises = new HttpClient();
+            clientePaises.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uriPaises = new Uri(url + "/" + "Pais");
             HttpRequestMessage solicitudPaises = new HttpRequestMessage(HttpMethod.Get, uriPaises);
+            solicitudPaises.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             Task<HttpResponseMessage> respuestaPaises = clientePaises.SendAsync(solicitudPaises);
             respuestaPaises.Wait();
 
@@ -77,8 +80,10 @@ namespace Obligatorio_Cliente.Controllers
             {
                 return RedirectToAction("Error");
             }
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uriEstadosConservacion = new Uri(url + "/" + "EstadoConservacion");
             HttpRequestMessage solicitudEstadosConservacion = new HttpRequestMessage(HttpMethod.Get, uriEstadosConservacion);
+            solicitudEstadosConservacion.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             Task<HttpResponseMessage> respuestaEstadosConservacion = cliente.SendAsync(solicitudEstadosConservacion);
             respuestaEstadosConservacion.Wait();
             if (respuestaEstadosConservacion.Result.IsSuccessStatusCode)
@@ -95,6 +100,7 @@ namespace Obligatorio_Cliente.Controllers
             }
             Uri uriAmenazas = new Uri(url + "/" + "Amenaza");
             HttpRequestMessage solicitudAmenazas = new HttpRequestMessage(HttpMethod.Get, uriAmenazas);
+            solicitudAmenazas.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             Task<HttpResponseMessage> respuestaAmenazas = cliente.SendAsync(solicitudAmenazas);
             respuestaAmenazas.Wait();
             if (respuestaAmenazas.Result.IsSuccessStatusCode)
@@ -264,9 +270,10 @@ namespace Obligatorio_Cliente.Controllers
         {
             try
             {
+                cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
                 Uri uri = new Uri(url + "/" + "EcosistemaMarino");
                 HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Put, uri);
-
+                solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
                 string json = JsonConvert.SerializeObject(ecosistema);
                 Console.WriteLine(json);
                 HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
@@ -300,9 +307,10 @@ namespace Obligatorio_Cliente.Controllers
         private EcosistemaMarinoModel AltaEcosistema(EcosistemaMarinoModel ecosistema)
         {
             ecosistema.EspeciesHabitan = new List<EspecieMarinaModel>();
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uri = new Uri(url + "/" + "EcosistemaMarino");
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Post, uri);
-
+            solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             string json = JsonConvert.SerializeObject(ecosistema);
             Console.WriteLine(json);
             HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
@@ -330,9 +338,10 @@ namespace Obligatorio_Cliente.Controllers
         }
         private AmenazaModel ObtenerAmenazaPorId(int id)
         {
-
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uri = new Uri(url + "/" + "Amenaza" + "/" + id);
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             string json = JsonConvert.SerializeObject(id);
             Console.WriteLine(json);
             HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
@@ -358,8 +367,10 @@ namespace Obligatorio_Cliente.Controllers
 
         private PaisModel ObtenerPaisPorISO(string ISO)
         {
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uri = new Uri(url + "/" + "Pais" + "/" + ISO);
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             string json = JsonConvert.SerializeObject(ISO);
             Console.WriteLine(json);
             HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
@@ -386,8 +397,10 @@ namespace Obligatorio_Cliente.Controllers
 
         private EstadoConservacionModel ObtenerEstadoConservacionPorId(int id)
         {
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uri = new Uri(url + "/" + "EstadoConservacion" + "/" + id);
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             string json = JsonConvert.SerializeObject(id);
             Console.WriteLine(json);
             HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");

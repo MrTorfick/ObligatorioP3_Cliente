@@ -1,0 +1,101 @@
+﻿@model IEnumerable<Obligatorio_Cliente.Models.EspecieMarinaModel>
+
+@{
+    ViewData["Title"] = "BuscarEspeciesQueHabitanEcosistema";
+}
+
+
+@if (!String.IsNullOrEmpty(ViewBag.Mensaje))
+{
+    <div class="alert alert-danger">
+        @ViewBag.Mensaje
+    </div>
+}
+
+
+<h1>Buscar especies que habitan un ecosistema dado</h1>
+
+
+@if (ViewBag.listaEcosistemas != null)
+{
+    <form method="post">
+        <label>Seleccione un Ecosistema Marino </label> <br />
+        <select id="EcosistemaSeleccionado" name="EcosistemaSeleccionado">
+            @foreach (var option in ViewBag.listaEcosistemas)
+            {
+                <option value="@option.Id">@option.Nombre</option>
+            }
+        </select>
+        <input type="submit" value="Buscar" />
+    </form>
+}
+else
+{
+    <p>No hay ecosistemas marinos registrados en el sistema</p>
+}
+
+@if (Model != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.NombreCientifico)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.NombreVulgar)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Descripcion)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Imagen)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Peso)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Longitud)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.EstadoConservacionId)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.NombreCientifico)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.NombreVulgar)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Descripcion)
+                    </td>
+                    @if (item.Imagen != null && item.Imagen.Count() > 0)
+                    {
+                        <td>
+                            <dd class="col-sm-10">
+                                <img class="img-thumbnail" src="~/images/especie/@item.Imagen.First().Valor" />
+                            </dd>
+                        </td>
+                    }
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Peso)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Longitud)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EstadoConservacionId)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}

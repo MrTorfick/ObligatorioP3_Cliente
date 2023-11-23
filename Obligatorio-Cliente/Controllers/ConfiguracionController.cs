@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Obligatorio_Cliente.Models;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace Obligatorio_Cliente.Controllers
@@ -119,8 +120,10 @@ namespace Obligatorio_Cliente.Controllers
         {
             try
             {
+                cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
                 Uri uri = new Uri(url + "/" + "Configuracion");
                 HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+                solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
                 Task<HttpResponseMessage> respuesta = cliente.SendAsync(solicitud);
                 respuesta.Wait();
 
@@ -149,8 +152,10 @@ namespace Obligatorio_Cliente.Controllers
 
         private ConfiguracionModel ObtenerConfiguracionPorNombre(string NombreAtributo)
         {
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uri = new Uri(url + "/" + "Configuracion" + "/" + NombreAtributo);
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Get, uri);
+            solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             string json = JsonConvert.SerializeObject(NombreAtributo);
             Console.WriteLine(json);
             HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
@@ -176,8 +181,10 @@ namespace Obligatorio_Cliente.Controllers
 
         private bool UpdateConfiguracion(ConfiguracionModel config)
         {
+            cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
             Uri uri = new Uri(url + "/" + "Configuracion");
             HttpRequestMessage solicitud = new HttpRequestMessage(HttpMethod.Put, uri);
+            solicitud.Headers.Add("NombreUsuario", HttpContext.Session.GetString("usuario"));
             string json = JsonConvert.SerializeObject(config);
             Console.WriteLine(json);
             HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");

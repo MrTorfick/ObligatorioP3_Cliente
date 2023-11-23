@@ -22,9 +22,101 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        @if (Context.Session.GetString("LogueadoNombre") != null)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Login" asp-action="Logout">Logout</a>
+                            </li>
+                            //El logueado es el admin
+                            @if (Context.Session.GetString("LogueadoRol") == "admin")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Login" asp-action="Create">Crear un usuario</a>
+                                </li>
+                            }
+                            //Cuando hay un usuario logueado
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Configuracion" asp-action="Index">Configuraciones</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EcosistemaMarino" asp-action="Create">Crear ecosistema</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="Create">Crear especie</a>
+                            </li>
+
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="BuscarEspeciesEnPeligroDeExtincion">Especies en Peligro de Extincion</a>
+                            </li>
+
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="BuscarEspeciesQueHabitanEcosistema">Buscar especies que habitan un ecosistema</a>
+                            </li>
+
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="BuscarEcosistemasMarinosNoPuedenHabitarEspecie">Buscar ecosistemas marinos que no pueden habitar una especie</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="BuscarPorNombreCientifico">Buscar especie por nombre cientifico</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="BuscarPorRangoDePeso">Buscar especie por rango de peso</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="Index">Especies</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EcosistemaMarino" asp-action="Index">Ecosistemas</a>
+                            </li>
+
+
+
+
+                        }
+                        //No hay nadie logueado
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Login" asp-action="Login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="Index">Especies</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EcosistemaMarino" asp-action="Index">Ecosistemas</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="BuscarEspeciesEnPeligroDeExtincion">Especies en Peligro de Extincion</a>
+                            </li>
+
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="BuscarEspeciesQueHabitanEcosistema">Buscar especies que habitan un ecosistema</a>
+                            </li>
+
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="BuscarEcosistemasMarinosNoPuedenHabitarEspecie">Buscar ecosistemas marinos que no pueden habitar una especie</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="BuscarPorNombreCientifico">Buscar especie por nombre cientifico</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EspecieMarina" asp-action="BuscarPorRangoDePeso">Buscar especie por rango de peso</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
