@@ -133,8 +133,10 @@ namespace Obligatorio_Cliente.Controllers
                 }
                 else
                 {
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
                     int codigoDeError = (int)respuesta.Result.StatusCode;
-                    throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError} {respuesta.Result.StatusCode}");
+                    string mensaje = response.Result.ToString();
+                    throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
                 }
 
             }
@@ -164,8 +166,10 @@ namespace Obligatorio_Cliente.Controllers
             }
             else
             {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
                 int codigoDeError = (int)respuesta.Result.StatusCode;
-                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError} {respuesta.Result.StatusCode}");
+                string mensaje = response.Result.ToString();
+                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
             }
             return null;
         }
@@ -189,8 +193,10 @@ namespace Obligatorio_Cliente.Controllers
             }
             else
             {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
                 int codigoDeError = (int)respuesta.Result.StatusCode;
-                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError} {respuesta.Result.StatusCode}");
+                string mensaje = response.Result.ToString();
+                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
 
 
             }

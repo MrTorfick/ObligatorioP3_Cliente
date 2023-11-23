@@ -30,8 +30,6 @@ namespace Obligatorio_Cliente.Controllers
         {
             try
             {
-
-
                 //cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
                 //cliente.DefaultRequestHeaders.Add("Accept", "application/json"); ?
                 IEnumerable<EcosistemaMarinoModel> ecosistemaMarinos = GetEcosistemaMarinos();
@@ -250,7 +248,10 @@ namespace Obligatorio_Cliente.Controllers
                 }
                 else
                 {
-                    return null;
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    int codigoDeError = (int)respuesta.Result.StatusCode;
+                    string mensaje = response.Result.ToString();
+                    throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
                 }
 
             }
@@ -282,7 +283,10 @@ namespace Obligatorio_Cliente.Controllers
                 }
                 else
                 {
-                    return false;
+                    Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                    int codigoDeError = (int)respuesta.Result.StatusCode;
+                    string mensaje = response.Result.ToString();
+                    throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
                 }
 
             }
@@ -314,6 +318,13 @@ namespace Obligatorio_Cliente.Controllers
                 EcosistemaMarinoModel ecosistemaMarino = JsonConvert.DeserializeObject<EcosistemaMarinoModel>(response.Result);
                 return ecosistemaMarino;
             }
+            else
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                int codigoDeError = (int)respuesta.Result.StatusCode;
+                string mensaje = response.Result.ToString();
+                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
+            }
             return null;
 
         }
@@ -335,6 +346,13 @@ namespace Obligatorio_Cliente.Controllers
                 AmenazaModel amenaza = JsonConvert.DeserializeObject<AmenazaModel>(response.Result);
                 return amenaza;
             }
+            else
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                int codigoDeError = (int)respuesta.Result.StatusCode;
+                string mensaje = response.Result.ToString();
+                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
+            }
             return null;
         }
 
@@ -354,6 +372,13 @@ namespace Obligatorio_Cliente.Controllers
                 response.Wait();
                 PaisModel pais = JsonConvert.DeserializeObject<PaisModel>(response.Result);
                 return pais;
+            }
+            else
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                int codigoDeError = (int)respuesta.Result.StatusCode;
+                string mensaje = response.Result.ToString();
+                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
             }
             return null;
         }
@@ -375,6 +400,13 @@ namespace Obligatorio_Cliente.Controllers
                 response.Wait();
                 EstadoConservacionModel estadoConservacion = JsonConvert.DeserializeObject<EstadoConservacionModel>(response.Result);
                 return estadoConservacion;
+            }
+            else
+            {
+                Task<string> response = respuesta.Result.Content.ReadAsStringAsync();
+                int codigoDeError = (int)respuesta.Result.StatusCode;
+                string mensaje = response.Result.ToString();
+                throw new Exception($"La solicitud no fue exitosa. Error: {codigoDeError}, {mensaje}");
             }
             return null;
         }

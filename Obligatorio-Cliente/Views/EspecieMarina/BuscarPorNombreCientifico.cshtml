@@ -1,0 +1,94 @@
+﻿@model Obligatorio_Cliente.Models.EspecieMarinaModel
+
+@{
+    ViewData["Title"] = "BuscarPorNombreCientifico";
+}
+
+
+@if (!String.IsNullOrEmpty(ViewBag.Mensaje))
+{
+    <div class="alert alert-danger">
+        @ViewBag.Mensaje
+    </div>
+}
+
+<h1>BuscarPorNombreCientifico</h1>
+
+
+<form method="post">
+    <label>Nombre Cientifico</label><br />
+    <input type="text" name="nombreCientifico" />
+    <input type="submit" value="Buscar" />
+</form>
+
+@if (Model != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Id)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.NombreCientifico)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.NombreVulgar)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Descripcion)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Imagen)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Peso)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Longitud)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.EstadoConservacionId)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+
+
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => Model.Id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => Model.NombreCientifico)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => Model.NombreVulgar)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => Model.Descripcion)
+                </td>
+                @if (Model.Imagen != null && Model.Imagen.Count() > 0)
+                {
+                    <td>
+                        <dd class="col-sm-10">
+                            <img class="img-thumbnail" src="~/images/especie/@Model.Imagen.First().Valor" />
+                        </dd>
+                    </td>
+                }
+                <td>
+                    @Html.DisplayFor(modelItem => Model.Peso)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => Model.Longitud)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => Model.EstadoConservacionId)
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+}
+

@@ -1,0 +1,105 @@
+﻿@model IEnumerable<Obligatorio_Cliente.Models.EcosistemaMarinoModel>
+
+@{
+    ViewData["Title"] = "BuscarEcosistemasMarinosNoPuedenHabitarEspecie";
+}
+
+
+@if (!String.IsNullOrEmpty(ViewBag.Mensaje))
+{
+    <div class="alert alert-danger">
+        @ViewBag.Mensaje
+    </div>
+}
+
+
+
+<h1>Buscar Ecosistemas Marinos, que no puede habitar la especie seleccionada</h1>
+
+@if (ViewBag.listaEspecies != null)
+{
+    <form method="post">
+        <label>Seleccione una EspecieMarina </label> <br />
+        <select id="EspecieSeleccionada" name="EspecieSeleccionada">
+            @foreach (var option in ViewBag.listaEspecies)
+            {
+                <option value="@option.Id">@option.NombreVulgar</option>
+            }
+        </select>
+        <input type="submit" value="Buscar" />
+    </form>
+}
+else
+{
+    <p>No hay especies marinas registradas en el sistema</p>
+}
+
+
+
+@if (Model != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Id)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Nombre)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Area)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.DescripcionCaracteristicas)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Imagen)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.EstadoConservacionId)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Id)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Nombre)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Area)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DescripcionCaracteristicas)
+                    </td>
+                    @if (item.Imagen != null && item.Imagen.Count() > 0)
+                    {
+                        <td>
+                            <dd class="col-sm-10">
+                                <img class="img-thumbnail" src="~/images/ecosistema/@item.Imagen.First().Valor" />
+                            </dd>
+                        </td>
+                    }
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EstadoConservacionId)
+                    </td>
+                    @*
+            <td>
+            @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+            @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+            @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            </td>
+            *@
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+

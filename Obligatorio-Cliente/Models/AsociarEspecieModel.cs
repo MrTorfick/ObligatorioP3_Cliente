@@ -1,6 +1,6 @@
 ﻿namespace Obligatorio_Cliente.Models
 {
-    public class AsociarEspecie
+    public class AsociarEspecieModel
     {
 
         public int IdEspecie { get; set; }
