@@ -17,8 +17,6 @@ namespace Obligatorio_Cliente.Controllers
     {
         private HttpClient cliente = new HttpClient();
         private string url = "http://localhost:5155/api";
-        private string urlPaises = "https://restcountries.com/v3.1/all";
-        private bool PaisesCargados = true;
         private IWebHostEnvironment _environment;
 
         public EcosistemaMarinoController(IWebHostEnvironment environment)
@@ -26,73 +24,21 @@ namespace Obligatorio_Cliente.Controllers
             _environment = environment;
         }
 
-        [HttpPost]
-        private bool CargarPaises()
-        {
-            if (!PaisesCargados)
-            {
-                Uri uriPaises = new Uri(urlPaises);
-                HttpRequestMessage solicitudPaises = new HttpRequestMessage(HttpMethod.Get, uriPaises);
-                Task<HttpResponseMessage> respuestaPaises = cliente.SendAsync(solicitudPaises);
-                respuestaPaises.Wait();
 
-                if (respuestaPaises.Result.IsSuccessStatusCode)
-                {
-                    Task<string> responsePaises = respuestaPaises.Result.Content.ReadAsStringAsync();
-                    responsePaises.Wait();
-                    IEnumerable<PaisModel> paises = JsonConvert.DeserializeObject<IEnumerable<PaisModel>>(responsePaises.Result);
-
-                    //Paises post
-                    Uri uri2 = new Uri(url + "/" + "Pais");
-                    HttpRequestMessage solicitud2 = new HttpRequestMessage(HttpMethod.Post, uri2);
-
-                    string json = JsonConvert.SerializeObject(paises);
-                    Console.WriteLine(json);
-                    HttpContent contenido = new StringContent(json, Encoding.UTF8, "application/json");
-                    solicitud2.Content = contenido;
-
-                    Task<HttpResponseMessage> respuesta2 = cliente.SendAsync(solicitud2);
-                    respuesta2.Wait();
-
-                    if (respuesta2.Result.IsSuccessStatusCode)
-                    {
-                        Task<string> response2 = respuesta2.Result.Content.ReadAsStringAsync();
-                        response2.Wait();
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                    PaisesCargados = true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        
 
         public ActionResult Index()
         {
             try
             {
-                if (!CargarPaises())
-                {
-                    return RedirectToAction("Error");
-                }
-                else
-                {
 
-                    //cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
-                    //cliente.DefaultRequestHeaders.Add("Accept", "application/json"); ?
-                    IEnumerable<EcosistemaMarinoModel> ecosistemaMarinos = GetEcosistemaMarinos();
-                    return View(ecosistemaMarinos);
 
-                    return RedirectToAction("Error");
-                }
+                //cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("token"));
+                //cliente.DefaultRequestHeaders.Add("Accept", "application/json"); ?
+                IEnumerable<EcosistemaMarinoModel> ecosistemaMarinos = GetEcosistemaMarinos();
+                return View(ecosistemaMarinos);
+
+                return RedirectToAction("Error");
+
             }
             catch (Exception ex)
             {
@@ -115,64 +61,57 @@ namespace Obligatorio_Cliente.Controllers
         // GET: EcosistemaMarinoController/Create
         public ActionResult Create()
         {
-            CargarPaises();
-            if (!CargarPaises())
+
+            HttpClient clientePaises = new HttpClient();
+            Uri uriPaises = new Uri(url + "/" + "Pais");
+            HttpRequestMessage solicitudPaises = new HttpRequestMessage(HttpMethod.Get, uriPaises);
+            Task<HttpResponseMessage> respuestaPaises = clientePaises.SendAsync(solicitudPaises);
+            respuestaPaises.Wait();
+
+            if (respuestaPaises.Result.IsSuccessStatusCode)
             {
-                return RedirectToAction("Error");
+                Task<string> responsePaises = respuestaPaises.Result.Content.ReadAsStringAsync();
+                responsePaises.Wait();
+                IEnumerable<PaisModel> paises = JsonConvert.DeserializeObject<IEnumerable<PaisModel>>(responsePaises.Result);
+                ViewBag.Paises = paises;
             }
             else
             {
-
-                HttpClient clientePaises = new HttpClient();
-                Uri uriPaises = new Uri(url + "/" + "Pais");
-                HttpRequestMessage solicitudPaises = new HttpRequestMessage(HttpMethod.Get, uriPaises);
-                Task<HttpResponseMessage> respuestaPaises = clientePaises.SendAsync(solicitudPaises);
-                respuestaPaises.Wait();
-
-                if (respuestaPaises.Result.IsSuccessStatusCode)
-                {
-                    Task<string> responsePaises = respuestaPaises.Result.Content.ReadAsStringAsync();
-                    responsePaises.Wait();
-                    IEnumerable<PaisModel> paises = JsonConvert.DeserializeObject<IEnumerable<PaisModel>>(responsePaises.Result);
-                    ViewBag.Paises = paises;
-                }
-                else
-                {
-                    return RedirectToAction("Error");
-                }
-                Uri uriEstadosConservacion = new Uri(url + "/" + "EstadoConservacion");
-                HttpRequestMessage solicitudEstadosConservacion = new HttpRequestMessage(HttpMethod.Get, uriEstadosConservacion);
-                Task<HttpResponseMessage> respuestaEstadosConservacion = cliente.SendAsync(solicitudEstadosConservacion);
-                respuestaEstadosConservacion.Wait();
-                if (respuestaEstadosConservacion.Result.IsSuccessStatusCode)
-                {
-                    Task<string> response = respuestaEstadosConservacion.Result.Content.ReadAsStringAsync();
-                    response.Wait();
-                    IEnumerable<EstadoConservacionModel> estadoConservacionModels = JsonConvert.DeserializeObject<IEnumerable<EstadoConservacionModel>>(response.Result);
-                    ViewBag.EstadosConservacion = estadoConservacionModels;
-                }
-                else
-                {
-                    return RedirectToAction("Error");
-
-                }
-                Uri uriAmenazas = new Uri(url + "/" + "Amenaza");
-                HttpRequestMessage solicitudAmenazas = new HttpRequestMessage(HttpMethod.Get, uriAmenazas);
-                Task<HttpResponseMessage> respuestaAmenazas = cliente.SendAsync(solicitudAmenazas);
-                respuestaAmenazas.Wait();
-                if (respuestaAmenazas.Result.IsSuccessStatusCode)
-                {
-                    Task<string> response = respuestaAmenazas.Result.Content.ReadAsStringAsync();
-                    response.Wait();
-                    IEnumerable<AmenazaModel> amenazaModels = JsonConvert.DeserializeObject<IEnumerable<AmenazaModel>>(response.Result);
-                    ViewBag.Amenazas = amenazaModels;
-                }
-                else
-                {
-                    return RedirectToAction("Error");
-
-                }
+                return RedirectToAction("Error");
             }
+            Uri uriEstadosConservacion = new Uri(url + "/" + "EstadoConservacion");
+            HttpRequestMessage solicitudEstadosConservacion = new HttpRequestMessage(HttpMethod.Get, uriEstadosConservacion);
+            Task<HttpResponseMessage> respuestaEstadosConservacion = cliente.SendAsync(solicitudEstadosConservacion);
+            respuestaEstadosConservacion.Wait();
+            if (respuestaEstadosConservacion.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuestaEstadosConservacion.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                IEnumerable<EstadoConservacionModel> estadoConservacionModels = JsonConvert.DeserializeObject<IEnumerable<EstadoConservacionModel>>(response.Result);
+                ViewBag.EstadosConservacion = estadoConservacionModels;
+            }
+            else
+            {
+                return RedirectToAction("Error");
+
+            }
+            Uri uriAmenazas = new Uri(url + "/" + "Amenaza");
+            HttpRequestMessage solicitudAmenazas = new HttpRequestMessage(HttpMethod.Get, uriAmenazas);
+            Task<HttpResponseMessage> respuestaAmenazas = cliente.SendAsync(solicitudAmenazas);
+            respuestaAmenazas.Wait();
+            if (respuestaAmenazas.Result.IsSuccessStatusCode)
+            {
+                Task<string> response = respuestaAmenazas.Result.Content.ReadAsStringAsync();
+                response.Wait();
+                IEnumerable<AmenazaModel> amenazaModels = JsonConvert.DeserializeObject<IEnumerable<AmenazaModel>>(response.Result);
+                ViewBag.Amenazas = amenazaModels;
+            }
+            else
+            {
+                return RedirectToAction("Error");
+
+            }
+
 
             //ViewBag.Mensaje = mensaje;
             return View();
